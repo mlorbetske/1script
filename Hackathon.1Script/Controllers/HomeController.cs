@@ -101,7 +101,5 @@ Password: {password}
         {
             return siteName;
         }
-
-        //public string GenerateProfile
     }
 }
