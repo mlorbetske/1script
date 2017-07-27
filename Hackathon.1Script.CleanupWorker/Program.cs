@@ -21,7 +21,7 @@ namespace Hackathon._1Script.CleanupWorker
         {
             const string clientId = "fa24eac7-0684-4964-ab13-9d4ff772e3d1";
             X509Certificate2 cert = new X509Certificate2(
-                @"..\..\..\App_Data\1script.pfx",
+                @"..\..\..\1script.pfx",
                 "No password");
             ClientAssertionCertificate certCred = new ClientAssertionCertificate(clientId, cert);
             AuthenticationContext authContext = new AuthenticationContext("https://login.windows.net/b550583b-bc56-47d4-b547-6982b363a8b0/");
