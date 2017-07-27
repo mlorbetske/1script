@@ -27,6 +27,8 @@ if not exist %temp%\netcore20preview2.exe (
 
     %temp%\netcore20preview2.exe
     if errorlevel 1 GOTO ERROR
+
+    SET ""PATH=%programfiles%\dotnet;%PATH%""
 )
 
 :: Invoke the template
@@ -42,7 +44,7 @@ if errorlevel 1 GOTO ERROR
 IF NOT EXIST Properties\PublishProfiles mkdir Properties\PublishProfiles
 if errorlevel 1 GOTO ERROR
 
-IF NOT EXIST Properties\PublishProfiles\Azure.pubxml (echo ^<Project^>
+(echo ^<Project^>
     echo    ^<PropertyGroup^>
     echo        ^<PublishProtocol^>Kudu^</PublishProtocol^>
     echo        ^<PublishSiteName^>$SiteName$^</PublishSiteName^>
@@ -53,13 +55,16 @@ IF NOT EXIST Properties\PublishProfiles\Azure.pubxml (echo ^<Project^>
 )>Properties\PublishProfiles\Azure.pubxml
 if errorlevel 1 GOTO ERROR
 
+rem echo ""Making sure the site is not running...""
+rem powershell -ExecutionPolicy Bypass -Command ""$headers = @{Authorization = \""Basic \"" + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes('$UserName$:$Password$'))}; $bodyString = @{ command=\""touch web.config\""; dir=\""site\\wwwroot\"" }; Invoke-RestMethod -Method POST -Uri https://$SiteName$.scm.azurewebsites.net/api/command -Body $bodyJson -Headers $headers -ContentType \""application/json\"" -UserAgent \""1Script\""""
+
+echo Publishing the project...
 dotnet publish /p:PublishProfile=Azure /p:Configuration=Release
 if errorlevel 1 GOTO ERROR
 
 start http://$SiteName$.azurewebsites.net
 if errorlevel 1 GOTO ERROR
 
-code .
 @if not exist ""%programfiles(x86)%"" (
     ""%programfiles%\Microsoft VS Code\code.exe"" .
 ) else (
@@ -71,8 +76,7 @@ code .
 	exit /b 1
 ";
 
-        public static string MacOsScript = @"
-#!/bin/bash
+        public static string MacOsScript = @"#!/bin/bash
 # vscode download & install
 
 function exit_on_error
@@ -123,30 +127,32 @@ if [ ! -e Properties/PublishProfiles ]; then
 	mkdir -p Properties/PublishProfiles
 fi
 
-if [ ! -e Properties/PublishProfiles/Azure.pubxml ]; then
-	(echo \<Project\>
-    	echo    \<PropertyGroup\>
-    	echo        \<PublishProtocol\>Kudu\</PublishProtocol\>
-    	echo        \<PublishSiteName\>$SiteName$\</PublishSiteName\>
-    	echo        \<UserName\>$UserName$\</UserName\>
-    	echo        \<Password\>$Password$</Password\>
-    	echo    \</PropertyGroup\>
-    	echo \</Project\>
-	) > Properties/PublishProfiles/Azure.pubxml
-fi
+(echo \<Project\>
+    echo    \<PropertyGroup\>
+    echo        \<PublishProtocol\>Kudu\</PublishProtocol\>
+    echo        \<PublishSiteName\>$SiteName$\</PublishSiteName\>
+    echo        \<UserName\>\$UserName$\</UserName\>
+    echo        \<Password\>$Password$\</Password\>
+    echo    \</PropertyGroup\>
+    echo \</Project\>
+) > Properties/PublishProfiles/Azure.pubxml
+
 if [[ $? -ne 0 ]]; then
 	exit_on_error
 fi
+
+#echo Making sure the site is not running...
+#curl -X POST -H ""Content-Type=application/json"" --data ""{command: 'touch web.config', dir: 'site\\\\wwwroot'}"" -u \$UserName$:$Password$ https://$SiteName$.scm.azurewebsites.net/api/command
 
 echo Publishing the project...
 dotnet publish /p:PublishProfile=Azure /p:Configuration=Release
 
 open http://$SiteName$.azurewebsites.net
 
-~/Downloads/Visual\ Studio\ Code.app/ .
+open ~/Downloads/Visual\ Studio\ Code.app/ .
 ";
 
-        public static string UnixScript = @"
+        public static string UnixScript = @"#!/bin/bash
 
 function exit_on_error
 {
@@ -162,16 +168,10 @@ function exit_on_error
 
 # vscode download & install
 echo ""Installing vsCode...""
-curl -L https://go.microsoft.com/fwlink/?LinkID=760868 > /tmp/vsCode-install.deb
+xdg-open https://go.microsoft.com/fwlink/?LinkID=760868
 if [[ $? -ne 0 ]]; then
 	exit_on_error
 fi
-
-sudo apt-get install /tmp/vsCode-install.deb
-if [[ $? -ne 0 ]]; then
-	exit_on_error
-fi
-
 
 # dotnet cli download & install
 echo ""Installing dotnet cli...""
@@ -181,7 +181,7 @@ if [[ $? -ne 0 ]]; then
 fi
 
 chmod a+x /tmp/dotnet-install.sh
-/tmp/dotnet-install.sh -i ~/bin/
+/tmp/dotnet-install.sh -i ~/bin/ -v 2.0.0-preview2-006497
 if [[ $? -ne 0 ]]; then
 	exit_on_error
 fi
@@ -208,26 +208,29 @@ if [ ! -e ""Properties/PublishProfiles"" ]; then
 	mkdir -p Properties/PublishProfiles
 fi
 
-if [ ! -e ""Properties/PublishProfiles/Azure.pubxml"" ]; then
-	(echo ""<Project>""
-    	echo ""   <PropertyGroup>""
-    	echo ""       <PublishProtocol>Kudu</PublishProtocol>""
-    	echo ""       <Configuration>Release</Configuration>""
-    	echo ""       <PublishSiteName>$SiteName$</PublishSiteName>""
-    	echo ""       <UserName>$UserName$</UserName>""
-    	echo ""       <Password>$Password$</Password>""
-    	echo ""   </PropertyGroup>""
-    	echo ""</Project>""
-	) > Properties/PublishProfiles/Azure.pubxml
-fi
+(echo ""<Project>""
+    echo ""   <PropertyGroup>""
+    echo ""       <PublishProtocol>Kudu</PublishProtocol>""
+    echo ""       <Configuration>Release</Configuration>""
+    echo ""       <PublishSiteName>$SiteName$</PublishSiteName>""
+    echo ""       <UserName>\$UserName$</UserName>""
+    echo ""       <Password>$Password$</Password>""
+    echo ""   </PropertyGroup>""
+    echo ""</Project>""
+) > Properties/PublishProfiles/Azure.pubxml
+
 if [[ $? -ne 0 ]]; then
 	exit_on_error
 fi
+
+#echo ""Making sure the site is not running...""
+#curl -X POST -H ""Content-Type=application/json"" --data ""{command: 'touch web.config', dir: 'site\\\\wwwroot'}"" -u \$UserName$:$Password$ https://$SiteName$.scm.azurewebsites.net/api/command
 
 echo ""Publishing the project...""
 ~/bin/dotnet publish /p:PublishProfile=Azure /p:Configuration=Release
 
 xdg-open http://$SiteName$.azurewebsites.net
+code ~/ScriptDemo/MyFirstWebApp/
 ";
     }
 }
