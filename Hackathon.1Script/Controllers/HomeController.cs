@@ -15,6 +15,13 @@ using Microsoft.Extensions.Primitives;
 
 namespace Hackathon._1Script.Controllers
 {
+    public enum Os
+    {
+        Windows,
+        MacOs,
+        LinuxOrUnix
+    }
+
     public class HomeController : Controller
     {
         public IActionResult Index()
@@ -31,6 +38,9 @@ namespace Hackathon._1Script.Controllers
         public async Task<IActionResult> Create()
         {
             bool isWindows = Request.Headers.TryGetValue("User-Agent", out StringValues userAgentValues) && userAgentValues.Any((string x) => x?.ToUpperInvariant().Contains("WINDOWS") ?? false);
+            bool isMac = Request.Headers.TryGetValue("User-Agent", out userAgentValues) && userAgentValues.Any((string x) => x?.ToUpperInvariant().Contains("MAC OS") ?? false);
+
+            Os os = isWindows ? Os.Windows : isMac ? Os.MacOs : Os.LinuxOrUnix;
 
             const string clientId = "fa24eac7-0684-4964-ab13-9d4ff772e3d1";
             X509Certificate2 cert = new X509Certificate2(@"App_Data\1script.pfx", "No password");
@@ -72,7 +82,7 @@ namespace Hackathon._1Script.Controllers
             string username = responseJson["properties"]["publishingUserName"].ToString();
             string password = responseJson["properties"]["publishingPassword"].ToString();
 
-            string realResponse = GenerateScript(siteName, username, password, isWindows);
+            string realResponse = GenerateScript(siteName, username, password, os);
 
             byte[] data = Encoding.UTF8.GetBytes(realResponse);
             string name = isWindows ? "get-started.cmd" : "get-started.sh";
@@ -80,24 +90,37 @@ namespace Hackathon._1Script.Controllers
             return File(data, "text/plain", name);
         }
 
-        private string GenerateScript(string siteName, string username, string password, bool isWindows)
+        private string GenerateScript(string siteName, string username, string password, Os os)
         {
             string result = $@"
-Windows scripts? {isWindows}
+OS: {os}
 Site: {siteName}
 Username: {username}
 Password: {password}
 ";
-            string baseScript = isWindows ? Scripts.WindowsScript : string.Empty;
+            string baseScript;
 
-            baseScript = baseScript.Replace("$SiteName$", PlatformEscape(isWindows, siteName))
-                                   .Replace("$UserName$", PlatformEscape(isWindows, username))
-                                   .Replace("$Password$", PlatformEscape(isWindows, password));
+            switch (os)
+            {
+                case Os.Windows:
+                    baseScript = Scripts.WindowsScript;
+                    break;
+                case Os.MacOs:
+                    baseScript = Scripts.MacOsScript;
+                    break;
+                default:
+                    baseScript = Scripts.UnixScript;
+                    break;
+            }
+
+            baseScript = baseScript.Replace("$SiteName$", PlatformEscape(os, siteName))
+                           .Replace("$UserName$", PlatformEscape(os, username))
+                           .Replace("$Password$", PlatformEscape(os, password));
 
             return baseScript;
         }
 
-        private string PlatformEscape(bool isWindows, string siteName)
+        private string PlatformEscape(Os os, string siteName)
         {
             return siteName;
         }
