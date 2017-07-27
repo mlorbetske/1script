@@ -99,23 +99,28 @@ Username: {username}
 Password: {password}
 ";
             string baseScript;
+            string newline;
 
             switch (os)
             {
                 case Os.Windows:
                     baseScript = Scripts.WindowsScript;
+                    newline = Environment.NewLine;
                     break;
                 case Os.MacOs:
                     baseScript = Scripts.MacOsScript;
+                    newline = "\n";
                     break;
                 default:
                     baseScript = Scripts.UnixScript;
+                    newline = "\n";
                     break;
             }
-
+            
             baseScript = baseScript.Replace("$SiteName$", PlatformEscape(os, siteName))
                            .Replace("$UserName$", PlatformEscape(os, username))
-                           .Replace("$Password$", PlatformEscape(os, password));
+                           .Replace("$Password$", PlatformEscape(os, password))
+                           .Replace("\r\n", newline);
 
             return baseScript;
         }
