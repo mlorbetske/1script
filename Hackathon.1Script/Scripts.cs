@@ -18,7 +18,7 @@ if not exist %temp%\vscodeSetup.exe (
 
 :: dotnet cli download & install
 @echo Installing dotnet cli...
-if not exist %temp%\netcore20preview2.exe(
+if not exist %temp%\netcore20preview2.exe (
    @if not exist ""%programfiles(x86)%"" (
        powershell -ExecutionPolicy Bypass -Command ""$wc = New-Object net.webclient; $wc.Downloadfile(\""https://aka.ms/dotnet-sdk-2.0.0-preview2-win-x86\"", \""$env:temp\netcore20preview2.exe\"")""
     ) else (
