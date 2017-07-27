@@ -161,54 +161,62 @@ function exit_on_error
 ";
 
         public static string UnixScript = @"
+
+function exit_on_error
+{
+	local message=""$2""
+	local error_code=""${3:-1}""
+	if [[ -n ""$message"" ]]; then
+		echo ""Error: ${message}; exiting with status ${error_code}""
+	else
+		echo ""Error: exiting with status ${error_code}""
+	fi
+	exit ""${error_code}"";
+}
+
 # vscode download & install
-echo Installing vsCode...
+echo ""Installing vsCode...""
 curl -L https://go.microsoft.com/fwlink/?LinkID=760868 > /tmp/vsCode-install.deb
 if [[ $? -ne 0 ]]; then
-	exit_on_error()
+	exit_on_error
 fi
 
 sudo apt-get install /tmp/vsCode-install.deb
 if [[ $? -ne 0 ]]; then
-	exit_on_error()
+	exit_on_error
 fi
 
 
 # dotnet cli download & install
-echo ""***""
-echo ""*** Installing dotnet cli""
-echo ""***""
+echo ""Installing dotnet cli...""
 curl https://raw.githubusercontent.com/dotnet/cli/release/2.0.0-preview2/scripts/obtain/dotnet-install.sh > /tmp/dotnet-install.sh
 if [[ $? -ne 0 ]]; then
-	exit_on_error()
+	exit_on_error
 fi
 
 chmod a+x /tmp/dotnet-install.sh
-sudo /bin/bash /tmp/dotnet-install.sh
+/tmp/dotnet-install.sh -i ~/bin/
 if [[ $? -ne 0 ]]; then
-	exit_on_error()
+	exit_on_error
 fi
 
 # Invoke the template
-echo ""***""
-echo ""Invoking the template""
-echo ""***""
-~/.dotnet/dotnet new mvc -o ~/ScriptDemo/MyFirstWebApp
+echo ""Invoking the template...""
+~/bin/dotnet new mvc -o ~/ScriptDemo/MyFirstWebApp
 if [[ $? -ne 0 ]]; then
-	exit_on_error()
+	exit_on_error
 fi
 
 cd ~/ScriptDemo/MyFirstWebApp
-~/.dotnet/dotnet restore
+~/bin/dotnet restore
 if [[ $? -ne 0 ]]; then
-	exit_on_error()
+	exit_on_error
 fi
 
-~/.dotnet/dotnet build
+~/bin/dotnet build
 if [[ $? -ne 0 ]]; then
-	exit_on_error()
+	exit_on_error
 fi
-
 
 if [ ! -e ""Properties/PublishProfiles"" ]; then
 	mkdir -p Properties/PublishProfiles
@@ -218,6 +226,7 @@ if [ ! -e ""Properties/PublishProfiles/Azure.pubxml"" ]; then
 	(echo ""<Project>""
     	echo ""   <PropertyGroup>""
     	echo ""       <PublishProtocol>Kudu</PublishProtocol>""
+    	echo ""       <Configuration>Release</Configuration>""
     	echo ""       <PublishSiteName>$SiteName$</PublishSiteName>""
     	echo ""       <UserName>$UserName$</UserName>""
     	echo ""       <Password>$Password$</Password>""
@@ -226,27 +235,13 @@ if [ ! -e ""Properties/PublishProfiles/Azure.pubxml"" ]; then
 	) > Properties/PublishProfiles/Azure.pubxml
 fi
 if [[ $? -ne 0 ]]; then
-	exit_on_error()
+	exit_on_error
 fi
 
-echo ""Publishing the project""
-~/.dotnet/dotnet publish /p:PublishProfile=Azure /p:Configuration=Release
+echo ""Publishing the project...""
+~/bin/dotnet publish /p:PublishProfile=Azure /p:Configuration=Release
 
 xdg-open http://$SiteName$.azurewebsites.net
-
-code .
-
-function exit_on_error
-{
-	local message = ""$2""
-	local error_code = ""${3:-1}""
-	if [[ -n ""$message"" ]]; then
-		echo ""Error: ${message}; exiting with status ${code}""
-	else
-		echo ""Error: exiting with status ${code}""
-	if
-	exit ""${code}""
-}
 ";
     }
 }
