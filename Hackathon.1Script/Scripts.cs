@@ -72,92 +72,78 @@ code .
 ";
 
         public static string MacOsScript = @"
+#!/bin/bash
 # vscode download & install
-echo Installing vsCode...
-curl -L https://go.microsoft.com/fwlink/?LinkID=760868 > /tmp/vsCode-install.deb
-if [[ $? -ne 0 ]]; then
-	exit_on_error()
-fi
-
-sudo apt-get install /tmp/vsCode-install.deb
-if [[ $? -ne 0 ]]; then
-	exit_on_error()
-fi
-
-
-# dotnet cli download & install
-echo ""***""
-echo ""*** Installing dotnet cli""
-echo ""***""
-curl https://raw.githubusercontent.com/dotnet/cli/release/2.0.0-preview2/scripts/obtain/dotnet-install.sh > /tmp/dotnet-install.sh
-if [[ $? -ne 0 ]]; then
-	exit_on_error()
-fi
-
-chmod a+x /tmp/dotnet-install.sh
-sudo /bin/bash /tmp/dotnet-install.sh
-if [[ $? -ne 0 ]]; then
-	exit_on_error()
-fi
-
-# Invoke the template
-echo ""***""
-echo ""Invoking the template""
-echo ""***""
-~/.dotnet/dotnet new mvc -o ~/ScriptDemo/MyFirstWebApp
-if [[ $? -ne 0 ]]; then
-	exit_on_error()
-fi
-
-cd ~/ScriptDemo/MyFirstWebApp
-~/.dotnet/dotnet restore
-if [[ $? -ne 0 ]]; then
-	exit_on_error()
-fi
-
-~/.dotnet/dotnet build
-if [[ $? -ne 0 ]]; then
-	exit_on_error()
-fi
-
-
-if [ ! -e ""Properties/PublishProfiles"" ]; then
-	mkdir -p Properties/PublishProfiles
-fi
-
-if [ ! -e ""Properties/PublishProfiles/Azure.pubxml"" ]; then
-	(echo ""<Project>""
-    	echo ""   <PropertyGroup>""
-    	echo ""       <PublishProtocol>Kudu</PublishProtocol>""
-    	echo ""       <PublishSiteName>$SiteName$</PublishSiteName>""
-    	echo ""       <UserName>$UserName$</UserName>""
-    	echo ""       <Password>$Password$</Password>""
-    	echo ""   </PropertyGroup>""
-    	echo ""</Project>""
-	) > Properties/PublishProfiles/Azure.pubxml
-fi
-if [[ $? -ne 0 ]]; then
-	exit_on_error()
-fi
-
-echo ""Publishing the project""
-~/.dotnet/dotnet publish /p:PublishProfile=Azure /p:Configuration=Release
-
-xdg-open http://$SiteName$.azurewebsites.net
-
-code .
 
 function exit_on_error
 {
-	local message = ""$2""
-	local error_code = ""${3:-1}""
-	if [[ -n ""$message"" ]]; then
-		echo ""Error: ${message}; exiting with status ${code}""
+	local message = """"$2""""
+	local error_code = """"${3:-1}""""
+	if [[ -n """"$message"""" ]]; then
+		echo """"Error: ${message}; exiting with status ${error_code}""""
 	else
-		echo ""Error: exiting with status ${code}""
-	if
-	exit ""${code}""
+		echo """"Error: exiting with status ${error_code}""""
+	fi
+	exit """"${error_code}"""";
 }
+
+echo Installing vsCode...
+if [ ! -e ~/Downloads/Visual\ Studio\ Code.app ]; then
+open https://go.microsoft.com/fwlink/?LinkID=620882
+if [[ $? -ne 0 ]]; then
+	exit_on_error
+fi
+
+fi
+
+# dotnet cli download & install
+echo Installing dotnet cli...
+if [ ! -e ~/Downloads/dotnet-sdk-2.0.0-preview2-006497-osx-x64.pkg ]; then
+curl -L -o ~/Downloads/dotnet-sdk-2.0.0-preview2-006497-osx-x64.pkg https://aka.ms/dotnet-sdk-2.0.0-preview2-osx-x64
+sudo installer -allowUntrusted -verboseR -pkg ~/Downloads/dotnet-sdk-2.0.0-preview2-006497-osx-x64.pkg -target /
+fi
+
+# Invoke the template
+echo Invoking the template...
+dotnet new mvc -o ~/ScriptDemo/MyFirstWebApp
+
+cd ~/ScriptDemo/MyFirstWebApp
+dotnet restore
+if [[ $? -ne 0 ]]; then
+	exit_on_error
+fi
+
+dotnet build
+if [[ $? -ne 0 ]]; then
+	exit_on_error
+fi
+
+
+if [ ! -e Properties/PublishProfiles ]; then
+	mkdir -p Properties/PublishProfiles
+fi
+
+if [ ! -e Properties/PublishProfiles/Azure.pubxml ]; then
+	(echo \<Project\>
+    	echo    \<PropertyGroup\>
+    	echo        \<PublishProtocol\>Kudu\</PublishProtocol\>
+    	echo        \<PublishSiteName\>$SiteName$\</PublishSiteName\>
+    	echo        \<UserName\>$UserName$\</UserName\>
+    	echo        \<Password\>$Password$</Password\>
+    	echo    \</PropertyGroup\>
+    	echo \</Project\>
+	) > Properties/PublishProfiles/Azure.pubxml
+fi
+if [[ $? -ne 0 ]]; then
+	exit_on_error
+fi
+
+echo Publishing the project...
+dotnet publish /p:PublishProfile=Azure /p:Configuration=Release
+
+open http://$SiteName$.azurewebsites.net
+
+~/Downloads/Visual\ Studio\ Code.app/ .
 ";
 
         public static string UnixScript = @"
