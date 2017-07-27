@@ -7,6 +7,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Newtonsoft.Json.Linq;
+using System.IO;
 
 namespace Hackathon._1Script.CleanupWorker
 {
@@ -19,9 +20,11 @@ namespace Hackathon._1Script.CleanupWorker
 
         private static async Task RunAsync()
         {
+            string certPath = Path.Combine(Path.GetDirectoryName(new Uri(typeof(Program).Assembly.CodeBase, UriKind.Absolute).LocalPath), "..", "..", "..", "1script.pfx");
+
             const string clientId = "fa24eac7-0684-4964-ab13-9d4ff772e3d1";
             X509Certificate2 cert = new X509Certificate2(
-                @"..\..\..\1script.pfx",
+                certPath,
                 "No password");
             ClientAssertionCertificate certCred = new ClientAssertionCertificate(clientId, cert);
             AuthenticationContext authContext = new AuthenticationContext("https://login.windows.net/b550583b-bc56-47d4-b547-6982b363a8b0/");
