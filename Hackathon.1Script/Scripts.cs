@@ -76,12 +76,12 @@ code .
 echo Installing vsCode...
 curl -L https://go.microsoft.com/fwlink/?LinkID=760868 > /tmp/vsCode-install.deb
 if [[ $? -ne 0 ]]; then
-	exit_on_error();
+	exit_on_error()
 fi
 
 sudo apt-get install /tmp/vsCode-install.deb
 if [[ $? -ne 0 ]]; then
-	exit_on_error();
+	exit_on_error()
 fi
 
 
@@ -91,13 +91,13 @@ echo ""*** Installing dotnet cli""
 echo ""***""
 curl https://raw.githubusercontent.com/dotnet/cli/release/2.0.0-preview2/scripts/obtain/dotnet-install.sh > /tmp/dotnet-install.sh
 if [[ $? -ne 0 ]]; then
-	exit_on_error();
+	exit_on_error()
 fi
 
 chmod a+x /tmp/dotnet-install.sh
 sudo /bin/bash /tmp/dotnet-install.sh
 if [[ $? -ne 0 ]]; then
-	exit_on_error();
+	exit_on_error()
 fi
 
 # Invoke the template
@@ -106,18 +106,18 @@ echo ""Invoking the template""
 echo ""***""
 ~/.dotnet/dotnet new mvc -o ~/ScriptDemo/MyFirstWebApp
 if [[ $? -ne 0 ]]; then
-	exit_on_error();
+	exit_on_error()
 fi
 
 cd ~/ScriptDemo/MyFirstWebApp
 ~/.dotnet/dotnet restore
 if [[ $? -ne 0 ]]; then
-	exit_on_error();
+	exit_on_error()
 fi
 
 ~/.dotnet/dotnet build
 if [[ $? -ne 0 ]]; then
-	exit_on_error();
+	exit_on_error()
 fi
 
 
@@ -137,7 +137,7 @@ if [ ! -e ""Properties/PublishProfiles/Azure.pubxml"" ]; then
 	) > Properties/PublishProfiles/Azure.pubxml
 fi
 if [[ $? -ne 0 ]]; then
-	exit_on_error();
+	exit_on_error()
 fi
 
 echo ""Publishing the project""
